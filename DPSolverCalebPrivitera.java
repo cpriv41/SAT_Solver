@@ -15,7 +15,7 @@ public class DPSolverCalebPrivitera {
 	 * @throws FileNotFoundException
 	 */
 	
-	public FormulaCalebPrivitera read(String inputFileName) throws FileNotFoundException {
+	public FormulaCalebPrivitera readFormula(String inputFileName) throws FileNotFoundException {
 		
 		FormulaCalebPrivitera inputFormula;
 		
@@ -44,12 +44,28 @@ public class DPSolverCalebPrivitera {
 			if(dpSolver(f))
 				return true;
 			else {
-				var = 0;
+				f.tValue[var] = 0;
+				int temp = 0;
+				for ( int i : formula){
+					if ( i = -1){
+						f.formula.remove(i);
+						break;
+					}
+				i++;
+			}
 				f.assign(var, false);
 				if(dpSolver(f))
 					return true;
 				else {
-					var = 0;
+					f.tValue[var] = 0;
+					int temp = 0;
+					for ( int i : f.formula){
+						if ( i = -1){
+							f.formula.remove(i);
+							break;
+					}
+				i++;
+			}
 					f.assign(var, false);
 					return false;
 					}
