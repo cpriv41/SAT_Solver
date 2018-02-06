@@ -1,0 +1,61 @@
+Assignment 1 – part 1 
+1.	Define a class called Main<yourName>
+2.	This class expects an input file name to be provided thro the command line argument; if the file is not provided then the program exits with an error message. You need to know how to provide a command line argument in Eclipse IDE.
+3.	Assume the existence of classes called DPSolver<yourName> and Timer<yourName>.
+4.	Main<yourName> will contain only the “main” function, which should 
+
+a.	pass the input file to a DPSolver<yourName> object.
+b.	Start the system clock using the start() in Timer<yourName>.
+c.	Use the solve() in DPSolver<yourName> to solve the sat problem in the input file.
+d.	Stop the system clock using the stop() in Timer<yourName>.
+e.	Print out the time taken to solve the problem. 
+
+5.	Write the Timer class with three methods: start(), stop() and getDuration().
+
+Assignment 1 – part 2
+
+1.	Write a class called FormulaReader<yourname>
+2.	This class defines a method called read(<inputFileName>) that reads the formula from the <inputFileName> and stores it in a 2D array called “formula” – each clause in the input file is to be stored in one row of the 2D array. In the input file,
+
+a.	Skip all the lines in the input file until “p  cnf”. Use the pattern class to implement this step.
+b.	Read and save the number of variables and clauses. 
+c.	Read and save the formula. 
+
+3.	Define “get” methods for the number of variables, number of clauses and the formula.
+
+Assignment 1 – part 3
+Write a class called Formula<yourName> which provides the following data structures and  functionalities for the formula.
+a.	An array to track of the truth values assigned to the variables. Initially, all variables are unassigned. i.e. set to “final int na = 0”. 
+b.	A linked list to keep track of all the sublists of clauses that are satisfied so far, and also the sublist of clauses that remain to be satisfied. The sublists are separated by a special marker (= -1). Initially, it contains all the clause labels ending with a marker. Note that each clause is represented in this list by the array index where it is stored.
+
+c.	functionalities:
+
+1.	read(<inputFileName>). This uses a FormulaReader<yourName> object to read the formula in <inputFileName>. Makes a local copy of the number of variables, clauses and the formula.
+Initializes the linked list representation of the formula using clause labels.
+Initializes the assignment array.
+2.	isFormulaEmpty() – returns true if the formula is empty else returns false. Uses the linked list representation of the formula. Formula is empty if the first int in it is the marker. Note that the formula that we are testing here is only the unsatisfied part of the formula.
+3.	isClauseEmpty(<clauseNo>) – returns true if a clause specified by <clauseNo>  is empty else returns false. A clause is empty if all its variables are already assigned but still the clause is not satisfied. Uses the first sublist in the linked list representation.
+4.	hasEmptyClause() – returns true if a formula contains an empty clause else returns false. Even if one clause is not satisfied then the formula is not satisfied. Uses the first sublist in the linked list representation.
+5.	firstAvailable() – returns the first available variable for backtracking. Uses the assignment array.
+6.	separateClauses() – moves the first sublist in the linked list representation to a temp list. 
+7.	assign() – assigns a truth value to the first available variable. Splits the first sublist in the linked list representation into two – one containing the clause labels that are satisfied by the latest assignment;  and, the other containing the clause labels that are not satisfied by the latest assignment. 
+8.	isClauseSatisfied(int cno) -  returns true if the clause with label cno is satisfied else returns flase. a clause is satisfied if at least one of its variables is true. 
+9.	printAssignment()  - displays the current assignment of the values of the variables.
+10.	printFormula()  -  displays the formula in the 2D format.
+11.	Print()  - displays the linked list representation of the clauses and the current assignment of the values of the variables.
+12.	Any other helper function that you may deem necessary.
+
+Assignment 1 – part 4
+Write a class called DPSolver<yourName> with the following functionality:
+1.	Write a function that reads the formula by passing the filename to a Formula<yourName> object.
+2.	Write a recursive function, dpSolver(Formula f) that takes the formula and attempts to satisfy it.  Read the assignment handout to clearly understand the recursive process. Decide 
+
+a.	When to terminate the recursive program (base case). If the formula is empty the recursive call returns true and terminates the program. 
+b.	When to terminate a recursive call (another base case). If the formula has an empty clause then the recursive call returns false and terminates the call.
+c.	(When to backtrack and what to do after backtracking)
+  
+i.	Backtrack to the first available unassigned variable and set it to true. Another call to the recursive function is instantiated. If this results in an empty formula then the recursive call returns true and terminates the program.
+ii.	Otherwise, reset the variable to false. Another call to the recursive function is instantiated. If this results in an empty formula then the recursive call returns true and terminates the program.
+iii.	 If both of the above cases fail then unassign the variable and return false. 
+
+3.	write solve(Formula<yourName> f) to initiate the recursive call and to output appropriate messages. Output could be either a statement saying that the formula was satisfiable or unsatisfiable. In the case of satisfiable, output the final assignments of values to the variables. 
