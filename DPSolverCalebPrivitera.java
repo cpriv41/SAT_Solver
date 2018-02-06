@@ -17,9 +17,9 @@ public class DPSolverCalebPrivitera {
 	
 	public FormulaCalebPrivitera read(String inputFileName) throws FileNotFoundException {
 		
-		FormulaCalebPrivitera inputFormula = new FormulaCalebPrivitera();
+		FormulaCalebPrivitera inputFormula;
 		
-		inputFormula.read();
+		inputFormula = read(inputFileName);
 		
 		return inputFormula;
 	}
