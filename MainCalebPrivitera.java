@@ -5,6 +5,11 @@ import java.util.*;
 
 public class MainCalebPrivitera {
 	public static void main(String[] args) {
+		
+		if (args.length < 1) {
+			System.out.println("Must specify inputFileName on command line");
+			System.exit(1);
+}
 
 		DPSolverCalebPrivitera DPSolver = new DPSolverCalebPrivitera(args[0]);
 		TimerCalebPrivitera timer = new TimerCalebPrivitera();
@@ -18,10 +23,6 @@ public class MainCalebPrivitera {
 		FormulaReaderCalebPrivitera temp = new FormulaReaderCalebPrivitera();
 		temp.read(args[0]);
 
-		if (args.length < 1) {
-			System.out.println("Must specify inputFileName on command line");
-			System.exit(1);
-		}
-
+		
 	}
 }
