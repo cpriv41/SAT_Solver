@@ -1,0 +1,111 @@
+Assignment 1 - Example:
+0:	(~X1	X2	X3)
+1:	(X1	X3	X4)
+2:	(X1	X3	~X4)
+3:	(X1	~X3	X4)
+4:	(X1	~X3	~X4)
+5:	(~X2	~X3	X4)
+6:	(~X1	X2	~X3)
+7:	(~X1	~X2	X3)
+
+
+c	DIMACS representation:
+p cnf	4	8
+ 	-1	2	3	0
+ 	-1	3	4	0
+ 	-1	3	-4	0
+ 	-1	-3	4	0
+ 	-1	-3	-4	0
+ 	-2	-3	4	0
+ 	-1	2	-3	0
+ 	-1	-2	3       	0 
+Paper implementation of the DP algorithm:
+Initial Formula:
+0:	(~X1	X2	X3)
+1:	(X1	X3	X4)
+2:	(X1	X3	~X4)
+3:	(X1	~X3	X4)
+4:	(X1	~X3	~X4)
+5:	(~X2	~X3	X4)
+6:	(~X1	X2	~X3)
+7:	(~X1	~X2	X3)
+Initial Assignment of truth values:  X1:  0	X2: 0		X3: 0		X4: 0      
+                   (0 means unassigned. 1 means assigned true. -1 means assigned false)
+
+
+Step1:	set X1: 1
+Assignment:  X1:  1	X2: 0	X3: 0	X4: 0
+Formula:
+0:	(~X1	X2	X3)   clause notSatisfied
+1:	(X1	X3	X4)  clause satisfied
+2:	(X1	X3	~X4)  clause satisfied
+3:	(X1	~X3	X4)  clause satisfied
+4:	(X1	~X3	~X4)   clause satisfied
+5:	(~X2	~X3	X4)    clause notSatisfied
+6:	(~X1	X2	~X3)   clause notSatisfied
+7:	(~X1	~X2	X3)      clause notSatisfied     
+
+Step 2:	set X2: 1
+Assignment:  X1:  1	X2: 1		X3: 0		X4: 0
+Formula (truncated):
+0:	(~X1	X2	X3)   clause satisfied 
+5:	(~X2	~X3	X4)      clause notSatisfied     
+6:	 ( ~X1  X2	~X3)   clause satisfied
+7:	(~X1	~X2	X3)        clause notSatisfied        
+
+Step 3:	set X3: 1
+Assignment:  X1:  1	X2: 1		X3: 1		X4: 0
+Formula:
+5:	(~X2	~X3	X4)      clause notSatisfied     
+7:	(~X1	~X2	X3)        clause  Satisfied        
+
+Step 4:	set X4: 1
+Assignment:  X1:  1	X2: 1		X3: 1		X4: 1
+Formula:
+5:	(~X2	~X3	X4)      clause  Satisfied     
+
+The formula is satisfiable and an assignment is   X1:  1	X2: 1	X3: 1	X4: 1
+
+The following trace of the above example with different assignment of truth values illustrates backtracking situations and the data structure that facilitates backtracking.   
+Internal representation of the formula (as a linked list) using clause labels:
+Initial Formula :   0		1	2	3	4	5	6	7	-1
+initial Assignment of Boolean values to variables:	1: 0 	2: 0	3: 0	4: 0        
+                   (0 means unassigned. 1 means assigned true. -1 means assigned false)
+
+formula is not empty and it has no empty clauses
+step 1: Set var 1 to F.  (Note: I have chosen to set the var1 to F and not to T as in the previous trace. This choice illustrates the backtracking process and the appropriate data structure.) 
+Assignment of Boolean values to variables:	1: -1 	2: 0	3: 0	4: 0
+Formula :   1		2	3	4	5	-1	7	6	0	-1
+
+formula is not empty and it has no empty clauses
+Step 2: Set var 2 to F.
+Assignment of Boolean values to variables:	1: -1 	2: -1	3: 0	4: 0
+Formula :   1		2	3	4	-1	5	-1	7	6	0	-1
+
+formula is not empty and it has no empty clauses
+Step 3: Set var 3 to F
+Assignment of Boolean values to variables:	1: -1 	2: -1	3: -1	4: 0
+Formula :   
+1	2	-1 	4	3	-1	5	-1	7	6	0	-1
+
+formula is not empty and it has no empty clauses
+Step 4: Set var 4 to F
+Assignment of Boolean values to variables:	1: -1 	2: -1	3: -1	4: -1
+Formula :   
+1	-1	2	-1	4	3	-1	5	-1	7	6    0 	-1 
+
+formula is not empty; but it has (at least) one empty clause. Time to backtrack. i.e. go back to the previous step. Note: a clause is empty if all its variables are assigned but the clause is not satisfied. Even if one clause is not satisfied then the formula is not satisfied.
+ Step 5: Set var 4 to T (unset 4 and reset it to T).
+Assignment of Boolean values to variables:	1: -1 	2: -1	3: -1	4: 1
+Formula :   
+2	-1	1	-1	4	3	-1	5	-1	7	6     0 	-1
+
+formula is not empty; but it has (at least) one empty clause. Time to backtrack.
+Step 6: Set var 3 to T (unset 4, unset 3 and reset 3 to T).
+Assignment of Boolean values to variables:	1: -1 	2: -1	3: 1	4: 0
+Formula :  
+ 3	4	-1	1	2	-1	5	-1	7	6	0	-1
+
+Note: step 5 and step 6 illustrate two types of backtracking. Be careful while implementing these.	
+And, So on ….
+A final satisfying assignment for this formula is:  1: 1	2: 1	3: 1	4: 1
