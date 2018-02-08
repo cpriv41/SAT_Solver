@@ -15,7 +15,7 @@ public class MainCalebPrivitera {
 		TimerCalebPrivitera timer = new TimerCalebPrivitera();
 
 		timer.start();
-		DPSolver.solve();
+		DPSolverCalebPrivitera.solve();
 		timer.stop();
 
 		System.out.println("Elasped time: " + timer.getDuration());
