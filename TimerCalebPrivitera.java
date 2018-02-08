@@ -13,7 +13,7 @@ public class TimerCalebPrivitera {
 	}
 
 	public long getDuration() {
-		return (stop - start) * 1000;
+		return (stop - start);
 	}
 
 }
