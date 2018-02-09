@@ -6,7 +6,7 @@ import java.io.*;
 
 public class DPSolverCalebPrivitera {
 	
-	FormulaReaderCalebPrivitera inputFormula;
+	FormulaCalebPrivitera inputFormula;
 	
 	
 	/**
@@ -15,9 +15,9 @@ public class DPSolverCalebPrivitera {
 	 *
 	 * @throws FileNotFoundException
 	 */
-	public FormulaReaderCalebPrivitera readFormula(String inputFileName) throws FileNotFoundException {
+	public FormulaCalebPrivitera readFormula(String inputFileName) throws FileNotFoundException {
 		
-		inputFormula = new FormulaReaderCalebPrivitera();
+		inputFormula = new FormulaCalebPrivitera();
 		
 		inputFormula.read(inputFileName);
 		
