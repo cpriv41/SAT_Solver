@@ -91,6 +91,7 @@ public class FormulaCalebPrivitera {
 
 		while ((clause = sublist.get(i)) != FALSE) {
 			tempList.addLast(clause);
+			i++;
 		}
 		return tempList;
 
