@@ -1,11 +1,12 @@
 package a1;
 
+
 import java.io.*;
 
 
 public class DPSolverCalebPrivitera {
 	
-
+	FormulaReaderCalebPrivitera inputFormula;
 	
 	
 	/**
@@ -14,12 +15,11 @@ public class DPSolverCalebPrivitera {
 	 *
 	 * @throws FileNotFoundException
 	 */
-	
-	public FormulaCalebPrivitera readFormula(String inputFileName) throws FileNotFoundException {
+	public FormulaReaderCalebPrivitera readFormula(String inputFileName) throws FileNotFoundException {
 		
-		FormulaCalebPrivitera inputFormula;
+		inputFormula = new FormulaReaderCalebPrivitera();
 		
-		inputFormula = read(inputFileName);
+		inputFormula.read(inputFileName);
 		
 		return inputFormula;
 	}
@@ -29,7 +29,7 @@ public class DPSolverCalebPrivitera {
 	 * @param f
 	 */
 	
-	boolean dpSolver(FormulaCalebPrivitera f) {
+	static boolean dpSolver(FormulaCalebPrivitera f) {
 		
 		if(f.isFormulaEmpty()) {
 			return true;
@@ -43,7 +43,41 @@ public class DPSolverCalebPrivitera {
 			
 			if(dpSolver(f))
 				return true;
+			//	tried fixing unset of var and removal of first -1
 			else {
+				f.sublist.set(var, 0);
+				for( int i : f.sublist){
+					if(f.sublist.get(i) == -1){
+						f.sublist.remove(i);
+						break;
+					}
+				}
+				
+				f.assign(var, false);
+				
+				if(dpSolver(f)) {
+					return true;
+				}else{
+					f.sublist.set(var, 0);
+					for( int i : f.sublist){
+						if(f.sublist.get(i) == -1){
+							f.sublist.remove(i);
+							break;
+						}
+					}
+					return false;
+				}
+				
+				
+				
+				
+				
+				
+				/*
+				//unset the variable and restore the previous link list
+				// unsetting the variable is simply set the variable to
+				//zero. Restoring the previous linked list is achieved
+				//by dropping the first occurrence of -1.  
 				f.tValue[var] = 0;
 				int temp = 0;
 				for ( int i : formula){
@@ -69,7 +103,7 @@ public class DPSolverCalebPrivitera {
 					f.assign(var, false);
 					return false;
 					}
-					
+					*/
 				}
 			}
 		}
@@ -79,17 +113,19 @@ public class DPSolverCalebPrivitera {
 	 * @param f
 	 */
 	
-	public void solve(FormulaCalebPrivitera f) {
+	public static void solve(FormulaCalebPrivitera f) {
 		
 		if (dpSolver(f) == true) {
 			System.out.println("Formula result is SATISFIED.");
-			inputFormula.print();
+			f.print();
 		}
 		else {
 			System.out.println("Formula result is UNSATISFIED.");
 		}
 		
 	}
+
+
 	
 	
 }
