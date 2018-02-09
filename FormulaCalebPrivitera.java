@@ -180,4 +180,23 @@ public class FormulaCalebPrivitera {
 		printAssignment();
 		System.out.println("Clauses and current assignment: " + sublist);
 	}
+
+void formulaRead(String cnf) throws FileNotFoundException {
+	
+    FormulaReaderCalebPrivitera inFile = new FormulaReaderCalebPrivitera();
+    inFile.read(cnf);
+    
+    clauses = inFile.getNumClauses();
+    variables = inFile.getNumVariables();
+	// getFormula(); not working since formula is an arrayList
+	// formula in this class is int[][]
+    formula = inFile.getFormula();
+    
+    tValue = new int[variables];
+    
+    for (int i = 0; i < clauses ; i++) {
+        sublist.add(i);
+    }
+    sublist.add(FALSE);
+}
 }
