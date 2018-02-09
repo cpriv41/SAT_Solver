@@ -19,8 +19,14 @@ public class DPSolverCalebPrivitera {
 		
 		inputFormula = new FormulaCalebPrivitera();
 		
-		inputFormula.read(inputFileName);
-		
+		try {
+			inputFormula.read(inputFileName);
+		} catch (FileNotFoundException ex) {
+			// if no file is found, print error
+
+			System.out.println("File not found.");
+			throw (ex);
+		}
 		return inputFormula;
 	}
 	
@@ -33,80 +39,52 @@ public class DPSolverCalebPrivitera {
 		
 		if(f.isFormulaEmpty()) {
 			return true;
-		}
-		else if (f.hasEmptyClause()) {
+		} else if (f.hasEmptyClause()) {
 			return false;
-		}
-		else {
+		} else {
 			int var = f.firstAvailable();
+			
+			if (var == FormulaCalebPrivitera.FALSE)
+				return false; // no more unassigned variables
+			
 			f.assign(var, true);
 			
 			if(dpSolver(f))
 				return true;
-			//	tried fixing unset of var and removal of first -1
 			else {
-				f.sublist.set(var, 0);
-				for( int i : f.sublist){
+				//unset the variable and restore the previous link list
+				// unsetting the variable is simply set the variable to
+				//zero. Restoring the previous linked list is achieved
+				//by dropping the first occurrence of -1.  
+				for( int i = 0; i < f.sublist.size(); i++){
 					if(f.sublist.get(i) == -1){
 						f.sublist.remove(i);
 						break;
 					}
-				}
+				} 
 				
 				f.assign(var, false);
 				
 				if(dpSolver(f)) {
 					return true;
-				}else{
-					f.sublist.set(var, 0);
-					for( int i : f.sublist){
+				} else {
+					//unset the variable and restore the previous link list
+					// unsetting the variable is simply set the variable to
+					//zero. Restoring the previous linked list is achieved
+					//by dropping the first occurrence of -1.  
+					 		
+					for( int i = 0; i < f.sublist.size(); i++){
 						if(f.sublist.get(i) == -1){
 							f.sublist.remove(i);
 							break;
 						}
-					}
+					} 
+					f.unassign(var);
 					return false;
-				}
-				
-				
-				
-				
-				
-				
-				/*
-				//unset the variable and restore the previous link list
-				// unsetting the variable is simply set the variable to
-				//zero. Restoring the previous linked list is achieved
-				//by dropping the first occurrence of -1.  
-				f.tValue[var] = 0;
-				int temp = 0;
-				for ( int i : formula){
-					if ( i = -1){
-						f.formula.remove(i);
-						break;
-					}
-				i++;
-			}
-				f.assign(var, false);
-				if(dpSolver(f))
-					return true;
-				else {
-					f.tValue[var] = 0;
-					int temp = 0;
-					for ( int i : f.formula){
-						if ( i = -1){
-							f.formula.remove(i);
-							break;
-					}
-				i++;
-			}
-					f.assign(var, false);
-					return false;
-					}
-					*/
 				}
 			}
 		}
+	}
 	
 	/**
 	 * Initiates the recursive call to dpSolver, prints result
@@ -118,14 +96,10 @@ public class DPSolverCalebPrivitera {
 		if (dpSolver(f) == true) {
 			System.out.println("Formula result is SATISFIED.");
 			f.print();
-		}
-		else {
+		} else {
 			System.out.println("Formula result is UNSATISFIED.");
 		}
 		
 	}
-
-
-	
 	
 }
