@@ -81,17 +81,13 @@ public class FormulaCalebPrivitera {
 	 * moves the first sublist in the linked list representation to a temp list
 	 * 
 	 */
-
-	public LinkedList<Integer> separateClauses() {
+public LinkedList<Integer> separateClauses() {
 
 		LinkedList<Integer> tempList = new LinkedList<>();
 
-		int clause = 0;
-		int i = 0;
-
-		while ((clause = sublist.get(i)) != FALSE) {
+		
+		for (int clause : tempList){
 			tempList.addLast(clause);
-			i++;
 		}
 		return tempList;
 
