@@ -2,9 +2,9 @@ package a1;
 
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 //import java.util.Arrays;
-import java.util.List;
+//import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,7 +12,7 @@ import java.io.FileNotFoundException;
 
 public class FormulaReaderCalebPrivitera {
 
-	static List<int[]> formula = new ArrayList<>();
+	static int[][] formula;
 	static int variables;
 	static int clauses;
 
@@ -21,10 +21,11 @@ public class FormulaReaderCalebPrivitera {
 		try {
 			File input = new File(inputFileName);
 			FileReader fileReader = new FileReader(input);
-			Pattern pat = Pattern.compile("p cnf \\d \\d");
+			Pattern pat = Pattern.compile("p cnf \\d+ \\d+");
 			Scanner scan = new Scanner(fileReader);
 			Matcher mat;
 			boolean matchFlag = false;
+			int curClause = 0;
 
 			while (scan.hasNextLine()) {
 				String line = scan.nextLine();
@@ -34,6 +35,7 @@ public class FormulaReaderCalebPrivitera {
 					String[] lines = line.split(" ");
 					variables = Integer.parseInt(lines[2]);
 					clauses = Integer.parseInt(lines[3]);
+					formula = new int[clauses][];
 					continue;
 				}
 				if (matchFlag) {
@@ -53,16 +55,19 @@ public class FormulaReaderCalebPrivitera {
 							clauseArray[i] = Math.abs(val);
 						}
 					}
-					formula.add(clauseArray);
+					formula[curClause++] = clauseArray;
 				}
 			}
 
-			for (int[] clause : formula) {
-				for (int i : clause) {
-					System.out.print(i + " ");
-				}
-				System.out.println();
-			}
+			/*
+			 * Debug
+			 * for (int[] clause : formula) {
+			 *	for (int i : clause) {
+			 *		System.out.print(i + " ");
+			 *	}
+			 *	System.out.println();
+			 *
+			 */
 			if (scan != null)
 				scan.close();
 
@@ -74,15 +79,15 @@ public class FormulaReaderCalebPrivitera {
 		}
 	}
 
-	public static int getNumVariables() {
+	public int getNumVariables() {
 		return variables;
 	}
 
-	public static int getNumClauses() {
+	public int getNumClauses() {
 		return clauses;
 	}
 
-	public static List<int[]> getFormula() {
+	public int[][] getFormula() {
 		return formula;
 	}
 
