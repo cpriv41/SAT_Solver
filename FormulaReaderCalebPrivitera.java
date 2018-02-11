@@ -47,13 +47,7 @@ public class FormulaReaderCalebPrivitera {
 						int val = Integer.parseInt(lines[i]);
 						if (val == 0)
 							break;
-						if (val < 0) {
-							// Not x Val
-							clauseArray[i] = Math.abs(val);
-						} else {
-							// x Val
-							clauseArray[i] = Math.abs(val);
-						}
+						clauseArray[i] = val;
 					}
 					formula[curClause++] = clauseArray;
 				}
