@@ -5,9 +5,10 @@ import java.io.FileNotFoundException;
 
 public class FormulaCalebPrivitera {
 
-  	static boolean setTrue = true;
+	FormulaReaderCalebPrivitera inFile;
+
 	// Array to track truth values assigned to variables
-	int [] tValue;
+	int[] tValue;
 
 	// LinkedList to keep track of all sublists of clauses satisfied so far
 	LinkedList<Integer> sublist = new LinkedList<>();
@@ -15,12 +16,17 @@ public class FormulaCalebPrivitera {
 	// Local copy of number of variables, clauses and the formula
 	int variables;
 	int clauses;
-	int[][] formula;
+	int[][] formula; // unsatisfied formula
+	int[][] inFormula; // input formula
 
 	// Markers
 	final static int FALSE = -1;
 	final static int UNASSIGNED = 0;
 	final static int TRUE = 1;
+
+	FormulaCalebPrivitera(String inputFile) throws FileNotFoundException {
+		read(inputFile);
+	}
 
 	/**
 	 * Returns true if the formula is empty, else returns false
@@ -31,19 +37,19 @@ public class FormulaCalebPrivitera {
 	}
 
 	/**
-	 * Returns true if a clause specified by <clauseNo> is empty, else returns
-	 * false
+	 * Returns true if a clause specified by <clauseNo> is empty, else returns false
 	 * 
 	 * @param clauseNo
 	 * @return
 	 */
 
 	public boolean isClauseEmpty(int clauseNo) {
+
 		for (int i : formula[clauseNo]) {
-			if (tValue[Math.abs(i) - 1] == UNASSIGNED)
+			if (i != 0 && tValue[Math.abs(i) - 1] == UNASSIGNED)
 				return false;
 		}
-		return isClauseSatisfied(clauseNo);
+		return true;
 	}
 
 	/**
@@ -51,11 +57,11 @@ public class FormulaCalebPrivitera {
 	 * 
 	 */
 	public boolean hasEmptyClause() {
-
-		LinkedList<Integer> tempList = separateClauses();
-
-		for (int i : tempList) {
-			if (isClauseEmpty(i))
+		// Check all formulas in the first sublist
+		for (int clause : sublist) {
+			if (clause == FALSE)
+				break;
+			if (isClauseEmpty(clause))
 				return true;
 		}
 		return false;
@@ -68,30 +74,29 @@ public class FormulaCalebPrivitera {
 	public int firstAvailable() {
 
 		for (int i = 0; i < variables; i++) {
-			if (tValue[i] != TRUE && tValue[i] != FALSE) {
+			if (tValue[i] == UNASSIGNED) {
 				return i;
 			}
 		}
 		return FALSE;
-
 	}
 
 	/**
 	 * moves the first sublist in the linked list representation to a temp list
 	 * 
 	 */
-public LinkedList<Integer> separateClauses() {
+	public LinkedList<Integer> separateClauses() {
 
 		LinkedList<Integer> tempList = new LinkedList<>();
+		int clause;
 
-		
-		for (int clause : sublist){
-			if (clause == FALSE)
-				break;	// end of first sublist
-			tempList.addLast(clause);
+		if (sublist.size() > 0) {
+			while ((clause = sublist.get(0)) != FALSE) {
+				tempList.add(clause);
+				sublist.remove(0);
+			}
 		}
 		return tempList;
-
 	}
 
 	/**
@@ -99,67 +104,86 @@ public LinkedList<Integer> separateClauses() {
 	 * 
 	 */
 	public void assign(int var, boolean truth) {
-		if (truth == true) {
+		if (truth == true)
 			tValue[var] = TRUE;
-		} else
+		else
 			tValue[var] = FALSE;
 
-		LinkedList<Integer> preSplit = new LinkedList<>(separateClauses());
+		LinkedList<Integer> preSplit = separateClauses();
 		LinkedList<Integer> satisfied = new LinkedList<>();
 		LinkedList<Integer> unsatisfied = new LinkedList<>();
 
-		// Reset the sublist to reflect the current status
-		sublist.clear();
+		// Unit Propagation
+		boolean addedToList;
 		for (int i : preSplit) {
-			if (isClauseSatisfied(i) == true) {
-				satisfied.add(i);
-			} else {
-				unsatisfied.add(i);
+			addedToList = false;
+			// For all unsatisfied clauses
+			for (int j = 0; j < formula[i].length; j++) {
+				int v = formula[i][j];
+				if ((Math.abs(v) - 1) != var)
+					continue;
+				// if literal matches value, erase clause; else erase literal
+				if ((v > 0 && tValue[var] == TRUE) || (v < 0 && tValue[var] == FALSE)) {
+					satisfied.add(i);
+					addedToList = true;
+					break;
+				} else if ((v < 0 && tValue[var] == TRUE) || (v > 0 && tValue[var] == FALSE)) {
+					// remove literal
+					formula[i][j] = 0;
+					unsatisfied.add(i);
+					addedToList = true;
+					break;
+				}
 			}
+			if (!addedToList)
+				unsatisfied.add(i);
 		}
 
-		for (int i : unsatisfied)
-			sublist.add(i);
-		sublist.addLast(FALSE);
-		for (int i : satisfied)
-			sublist.add(i);
+		// Reset the sublist to reflect the current status
+		if (satisfied.size() > 0)
+			sublist.addAll(0, satisfied);
+		sublist.add(0, FALSE);
+		sublist.addAll(0, unsatisfied);
 	}
 
 	/**
-	 * Assigns a truth value to the first available variable
+	 * Reset variable to default value.
 	 * 
 	 */
 	public void unassign(int var) {
 		tValue[var] = UNASSIGNED;
 	}
-	
-/**
-	 * Returns true if the clause with label cno is satisfied, else returns
-	 * false
+
+	/**
+	 * Returns true if the clause with label cno is satisfied, else returns false
 	 * 
 	 * @param cno
 	 * 
 	 */
 
 	public boolean isClauseSatisfied(int cno) {
-
 		for (int i : formula[cno]) {
-			if (tValue[Math.abs(i) - 1] == TRUE)
+			if (i != 0 && tValue[Math.abs(i) - 1] == TRUE)
 				return true;
 		}
 		return false;
-
 	}
 
 	/**
-	 * Dsiplays the current assignment of the values of the variables
+	 * Displays the current assignment of the values of the variables
 	 */
 	public void printAssignment() {
 		System.out.println("Current variable assignment:");
-
+		System.out.print("[  ");
 		for (int i = 0; i < variables; i++) {
-			System.out.println("X" + (i + 1) + ": " + tValue[i]);
+			System.out.print("X" + (i + 1) + ": " + tValue[i] + " ");
+			if (i > 0 && i % 10 == 0) {
+				System.out.println(" ]");
+				System.out.print("[  ");
+			}
+
 		}
+		System.out.print(" ]");
 		System.out.println();
 	}
 
@@ -170,12 +194,12 @@ public LinkedList<Integer> separateClauses() {
 		System.out.println("Initial Formula: ");
 
 		for (int i = 0; i < clauses; i++) {
-			System.out.print(i + ": " + "\t" + "(");
+			System.out.print(i + ": " + "\t[\t");
 
-			for (int j : formula[i]) {
-				System.out.print("X" + j + "\t");
+			for (int j : inFormula[i]) {
+				System.out.print(j + "\t");
 			}
-			System.out.print(")");
+			System.out.print("]");
 			System.out.println();
 		}
 	}
@@ -185,23 +209,45 @@ public LinkedList<Integer> separateClauses() {
 	 * assignment of the clauses of the variables
 	 */
 	public void print() {
+		int listNo = 0;
 		printAssignment();
-		System.out.println("Clauses and current assignment: " + sublist);
+		System.out.print("Unsatisfied List: ");
+		for (int i : sublist) {
+			if (i == FALSE)
+				System.out.print("\n Satisfied List " + listNo++ + ": ");
+			else
+				System.out.print(i + " ");
+		}
+		System.out.println("");
+	}
+
+	/**
+	 * Deep copy of formula, making unique copy, separate from original
+	 */
+	public void deepCopyInFormula() {
+		formula = new int[inFormula.length][];
+		for (int i = 0; i < inFormula.length; i++) {
+			formula[i] = new int[inFormula[i].length];
+			for (int j = 0; j < inFormula[i].length; j++)
+				formula[i][j] = inFormula[i][j];
+		}
 	}
 
 	public void read(String cnf) throws FileNotFoundException {
-	
-		FormulaReaderCalebPrivitera inFile = new FormulaReaderCalebPrivitera();
+
+		inFile = new FormulaReaderCalebPrivitera();
 		inFile.read(cnf);
-    
+
 		clauses = inFile.getNumClauses();
 		variables = inFile.getNumVariables();
-		formula = inFile.getFormula();
-    
+		inFormula = inFile.getFormula();
+		deepCopyInFormula(); // initialize unsatisfied formula
+
 		tValue = new int[variables];
-		for (int i = 0; i < clauses ; i++) {
+		for (int i = 0; i < clauses; i++) {
 			sublist.add(i);
 		}
-		sublist.add(FALSE);	// initially, all clauses are unsatisfied
+		sublist.add(FALSE); // initially, all clauses are unsatisfied
 	}
+
 }
