@@ -1,3 +1,4 @@
+
 package a1;
 
 import java.io.FileNotFoundException;
@@ -29,13 +30,13 @@ public class MainCalebPrivitera {
 		     */
 		    private static void run(String input) throws FileNotFoundException {
 		    	
-		    	DPSolverCalebPrivitera DPSolver = new DPSolverCalebPrivitera();
+		    	DPSolverCalebPrivitera DPSolver = new DPSolverCalebPrivitera(input);
 		        TimerCalebPrivitera timer = new TimerCalebPrivitera();
 		     
 		     
 		        System.out.println("Processing input file: " + input);
 		        timer.start();
-		        DPSolver.solve(DPSolver.readFormula(input));
+		        DPSolver.solve();
 		        timer.stop();
 		        System.out.println("Time elapsed: " + timer.getDuration() + "ms");
 		    }
