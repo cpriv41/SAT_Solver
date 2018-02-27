@@ -1,254 +1,310 @@
-package a1;
+package sodoku;
 
-import java.util.*;
-import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.util.Arrays;
+import java.util.Scanner;
+import java.util.regex.Pattern;
 
-public class FormulaCalebPrivitera {
+public class SodokuToSatReducerPrivitera {
 
-	FormulaReaderCalebPrivitera inFile;
+	private File cnfOut;
+	private PrintWriter writer;
+	private PrintWriter pw;
+	public int boxWidth;
+	public int boxHeight;
+	public int numCells;
+	boolean[] variables;
+	// boolean[] boxes;
+	SodokuBoardPrivitera sodokuBoard;
+	// final private static int[] DEFAULT_VALUE = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-	// Array to track truth values assigned to variables
-	int[] tValue;
+	public SodokuToSatReducerPrivitera(File inputFile) throws Exception {
 
-	// LinkedList to keep track of all sublists of clauses satisfied so far
-	LinkedList<Integer> sublist = new LinkedList<>();
+		createBoard(inputFile);
+		// 729 variables
+		variables = new boolean[sodokuBoard.getNumberOfCells() * 9];
+		// boxes = new boolean[sodokuBoard.getBoardSize()];
+		initializeBoard();
 
-	// Local copy of number of variables, clauses and the formula
-	int variables;
-	int clauses;
-	int[][] formula; // unsatisfied formula
-	int[][] inFormula; // input formula
-
-	// Markers
-	final static int FALSE = -1;
-	final static int UNASSIGNED = 0;
-	final static int TRUE = 1;
-
-	FormulaCalebPrivitera(String inputFile) throws FileNotFoundException {
-		read(inputFile);
 	}
 
-	/**
-	 * Returns true if the formula is empty, else returns false
-	 */
-	public boolean isFormulaEmpty() {
+	public void createBoard(File inputFile) throws Exception {
 
-		return sublist.getFirst() == FALSE;
+		Scanner board = null;
+
+		try {
+
+			FileInputStream inFile = new FileInputStream(inputFile);
+			board = new Scanner(inFile);
+			System.out.println("File " + inputFile + " has been openned");
+
+			Pattern pat = Pattern.compile("c");
+
+			while (board.findInLine(pat) != null)
+				// skip comments
+				// once at 'c' read line
+				board.nextLine();
+
+			// get board dimensions
+			boxWidth = board.nextInt();
+			boxHeight = board.nextInt();
+
+			sodokuBoard = new SodokuBoardPrivitera(boxWidth, boxHeight);
+
+			// process data from input file
+			for (int cell = 1; cell <= sodokuBoard.getNumberOfCells() - 1; cell++) {
+				sodokuBoard.setCellValue(cell - 1, board.nextInt());
+
+			}
+			System.out.println(sodokuBoard.toString());
+			// int[] clauses =
+			// Math3.binomialCoefficientLog(sodokuBoard.getBoardSize(), 2);
+
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			board.close();
+		}
+
+		return;
+
 	}
 
+	public void initializeBoard() {
+
+		for (int i = 0; i < sodokuBoard.getNumberOfCells(); i++) {
+			if (sodokuBoard.getCellValue(i) != 0)
+				variables[getVariableIndex(sodokuBoard.getCellRow(i), sodokuBoard.getCellColumn(i),
+						sodokuBoard.getCellValue(i))] = true;
+		}
+		return;
+
+	}
+	
+	static void reduceBoard(){
+		reducer();
+	}
+
+	public void reducer() {
+		try {
+			createOutput("output");
+		
+		printFirstLine();
+		for (int i = 0; i < sodokuBoard.getBoardSize(); i++) {
+			for (int k = 1; k <= sodokuBoard.getBoardSize(); k++) {
+				atLeastOneInRow(i, k);
+				atMostOneInRow(i, k);
+			}
+		}
+		for (int j = 0; j < sodokuBoard.getBoardSize(); j++) {
+			for (int k = 1; k <= sodokuBoard.getBoardSize(); k++) {
+				atLeastOneInColumn(j, k);
+				atMostOneInColumn(j, k);
+			}
+		}
+		for (int i = 0; i < sodokuBoard.getBoardSize(); i++) {
+			for (int k = 1; k <= sodokuBoard.getBoardSize(); k++) {
+				atLeastOneInBox(i, k);
+				atMostOneInBox(i, k);
+			}
+		}
+		for (int i = 0; i < sodokuBoard.getBoardSize(); i++) {
+			for (int j = 0; j < sodokuBoard.getBoardSize(); j++) {
+				atLeastOneInCell(i, j);
+				atMostOneInCell(i, j);
+
+			}
+
+		}
+		writer.flush();
+		writer.close();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	//
+	// public void initialzeBoxStatus() {
+	// boolean[] boxStatus = new boolean[sodokuBoard.getBoardSize()];
+	// // Check all boxes on board
+	// for (int i = 0; i < sodokuBoard.getBoardSize(); i++) {
+	// // Assume that the box has all required digits
+	// boxes[i] = true;
+	// // Check every digit in the box
+	// for (int j = 0; j < sodokuBoard.getBoxHeight(); j++) {
+	// for (int k = 0; k < sodokuBoard.getBoxWidth(); k++) {
+	// // Tick the appropriate indicator for every non-zero value
+	// if (getBoxValue(i, j, k) != 0)
+	// boxStatus[getBoxValue(i, j, k)] = true;
+	// }
+	// }
+	// // If any digits are missing, set the box status to false
+	// for (int x = 0; x < boxStatus.length; x++) {
+	// if (boxStatus[x] != true)
+	// boxes[i] = false;
+	// }
+	//
+	// // reset indicators for next box analysis
+	// Arrays.fill(boxStatus, false);
+	// }
+	// return;
+	// }
+	//
+	// public int getBoxValue(int boxNum, int row, int column) {
+	//
+	// int cellIndex = (boxNum/boxWidth * sodokuBoard.getBoardSize() *
+	// boxHeight) + (boxNum % boxWidth)*3 + (row * sodokuBoard.getBoardSize()) +
+	// column;
+	// return sodokuBoard.getCellValue(cellIndex);
+	// }
+	//
+
 	/**
-	 * Returns true if a clause specified by <clauseNo> is empty, else returns false
 	 * 
-	 * @param clauseNo
+	 * Converts it into one number using the i * 9^2 + j * 9 + k converting a
+	 * cell from the sudoku board into one variable.
+	 * 
+	 * @param row
+	 * @param column
+	 * @param value
 	 * @return
 	 */
+	public int convert(int row, int column, int value) {
 
-	public boolean isClauseEmpty(int clauseNo) {
+		return (row * sodokuBoard.getBoardSize() * sodokuBoard.getBoardSize() + column * sodokuBoard.getBoardSize()
+				+ value);
 
-		for (int i : formula[clauseNo]) {
-			if (i != 0 && tValue[Math.abs(i) - 1] == UNASSIGNED)
-				return false;
-		}
-		return true;
 	}
 
-	/**
-	 * Returns true if a formula contains an empty clause, else returns false
-	 * 
-	 */
-	public boolean hasEmptyClause() {
-		// Check all formulas in the first sublist
-		for (int clause : sublist) {
-			if (clause == FALSE)
-				break;
-			if (isClauseEmpty(clause))
-				return true;
-		}
-		return false;
+	private int getVariableIndex(int row, int column, int value) {
+
+		return (value - 1) + (sodokuBoard.getNumberOfCells()) + row * (sodokuBoard.getBoardSize() + column);
 	}
 
-	/**
-	 * Returns the first available variable for backtracking
-	 * 
-	 */
-	public int firstAvailable() {
+	public void atLeastOneInRow(int row, int value) {
 
-		for (int i = 0; i < variables; i++) {
-			if (tValue[i] == UNASSIGNED) {
-				return i;
+		for (int col = 0; col < sodokuBoard.getBoardSize(); col++) {
+			//if (variables[getVariableIndex(row, col, value)] == true)
+				writer.print(Integer.toString(convert(row, col, value)) + " ");
+
+		}
+		writer.println("0");
+
+	}
+
+	private void atMostOneInRow(int row, int value) {
+
+		for (int j = 0; j < sodokuBoard.getBoardSize(); j++) {
+			for (int k = j + 1; k < sodokuBoard.getBoardSize(); k++) {
+				// if (variables[getVariableIndex(j, k, value)] == true) {
+				writer.println(Integer.toString(-1 * convert(row, j, value)) + " "
+						+ Integer.toString(-1 * convert(row, k, value)) + " 0");
+
+				// }
 			}
 		}
-		return FALSE;
+
 	}
 
-	/**
-	 * moves the first sublist in the linked list representation to a temp list
-	 * 
-	 */
-	public LinkedList<Integer> separateClauses() {
+	public void atLeastOneInColumn(int column, int value) {
+		for (int row = 0; row < sodokuBoard.getBoardSize(); row++) {
+			//if (variables[getVariableIndex(row, column, value)] == true)
+				writer.print(Integer.toString(convert(row, column, value)) + " ");
 
-		LinkedList<Integer> tempList = new LinkedList<>();
-		int clause;
+		}
+		writer.println("0");
 
-		if (sublist.size() > 0) {
-			while ((clause = sublist.get(0)) != FALSE) {
-				tempList.add(clause);
-				sublist.remove(0);
+	}
+
+	public void atMostOneInColumn(int column, int value) {
+
+		for (int j = 0; j < sodokuBoard.getBoardSize(); j++) {
+			for (int k = j + 1; k < sodokuBoard.getBoardSize(); k++) {
+				writer.println(Integer.toString(-1 * convert(j, column, value)) + " "
+						+ Integer.toString(-1 * convert(k, column, value)) + " 0");
+
 			}
 		}
-		return tempList;
 	}
 
-	/**
-	 * Assigns a truth value to the first available variable
-	 * 
-	 */
-	public void assign(int var, boolean truth) {
-		if (truth == true)
-			tValue[var] = TRUE;
-		else
-			tValue[var] = FALSE;
+	public void atLeastOneInBox(int box, int value) {
 
-		LinkedList<Integer> preSplit = separateClauses();
-		LinkedList<Integer> satisfied = new LinkedList<>();
-		LinkedList<Integer> unsatisfied = new LinkedList<>();
-
-		// Unit Propagation
-		boolean addedToList;
-		for (int i : preSplit) {
-			addedToList = false;
-			// For all unsatisfied clauses
-			for (int j = 0; j < formula[i].length; j++) {
-				int v = formula[i][j];
-				if ((Math.abs(v) - 1) != var)
+		for (int row = 0; row < sodokuBoard.getBoardSize(); row++) {
+			for (int column = row + 1; column < sodokuBoard.getBoardSize(); column++) {
+				if (sodokuBoard.getCellBox(value) != box)
 					continue;
-				// if literal matches value, erase clause; else erase literal
-				if ((v > 0 && tValue[var] == TRUE) || (v < 0 && tValue[var] == FALSE)) {
-					satisfied.add(i);
-					addedToList = true;
-					break;
-				} else if ((v < 0 && tValue[var] == TRUE) || (v > 0 && tValue[var] == FALSE)) {
-					// remove literal
-					formula[i][j] = 0;
-					unsatisfied.add(i);
-					addedToList = true;
-					break;
-				}
+				//if (variables[getVariableIndex(row, column, value)] == true)
+					writer.print(Integer.toString(convert(row, column, value)) + " ");
+
 			}
-			if (!addedToList)
-				unsatisfied.add(i);
 		}
+		writer.println("0");
 
-		// Reset the sublist to reflect the current status
-		if (satisfied.size() > 0)
-			sublist.addAll(0, satisfied);
-		sublist.add(0, FALSE);
-		sublist.addAll(0, unsatisfied);
 	}
 
-	/**
-	 * Reset variable to default value.
-	 * 
-	 */
-	public void unassign(int var) {
-		tValue[var] = UNASSIGNED;
-	}
+	public void atMostOneInBox(int box, int value) {
 
-	/**
-	 * Returns true if the clause with label cno is satisfied, else returns false
-	 * 
-	 * @param cno
-	 * 
-	 */
+		for (int row = 0; row < sodokuBoard.getBoardSize(); row++) {
+			for (int column = row + 1; column < sodokuBoard.getBoardSize(); column++) {
+				if (sodokuBoard.getCellBox(value) != box)
+					continue;
 
-	public boolean isClauseSatisfied(int cno) {
-		for (int i : formula[cno]) {
-			if (i != 0 && tValue[Math.abs(i) - 1] == TRUE)
-				return true;
-		}
-		return false;
-	}
+				writer.println(Integer.toString(-1 * convert(row, column, value)) + " "
+						+ Integer.toString(-1 * convert(row, column, value)) + " 0");
 
-	/**
-	 * Displays the current assignment of the values of the variables
-	 */
-	public void printAssignment() {
-		System.out.println("Current variable assignment:");
-		System.out.print("[  ");
-		for (int i = 0; i < variables; i++) {
-			System.out.print("X" + (i + 1) + ": " + tValue[i] + " ");
-			if (i > 0 && i % 10 == 0) {
-				System.out.println(" ]");
-				System.out.print("[  ");
 			}
-
 		}
-		System.out.print(" ]");
-		System.out.println();
+
 	}
 
-	/**
-	 * Displays the formula in 2D format
-	 */
-	public void printFormula() {
-		System.out.println("Initial Formula: ");
+	public void atLeastOneInCell(int row, int column) {
 
-		for (int i = 0; i < clauses; i++) {
-			System.out.print(i + ": " + "\t[\t");
+		for (int k = 1; k < sodokuBoard.getBoardSize(); k++) {
+			// if (variables[getVariableIndex(row, column, k)] == true)
+			writer.print(Integer.toString(convert(row, column, k)) + " ");
 
-			for (int j : inFormula[i]) {
-				System.out.print(j + "\t");
-			}
-			System.out.print("]");
-			System.out.println();
 		}
+		writer.println("0");
+
 	}
 
-	/**
-	 * Displays the linked list representation of the clause and the current
-	 * assignment of the clauses of the variables
-	 */
-	public void print() {
-		int listNo = 0;
-		printAssignment();
-		System.out.print("Unsatisfied List: ");
-		for (int i : sublist) {
-			if (i == FALSE)
-				System.out.print("\n Satisfied List " + listNo++ + ": ");
-			else
-				System.out.print(i + " ");
+	private void atMostOneInCell(int row, int column) {
+
+		for (int x = 0; x < sodokuBoard.getBoardSize(); x++) {
+			for (int y = x + 1; y < sodokuBoard.getBoardSize(); y++)
+				writer.println(Integer.toString(-1 * convert(row, column, x)) + " "
+						+ Integer.toString(-1 * convert(row, column, y)) + " 0");
+
 		}
-		System.out.println("");
+
 	}
 
-	/**
-	 * Deep copy of formula, making unique copy, separate from original
-	 */
-	public void deepCopyInFormula() {
-		formula = new int[inFormula.length][];
-		for (int i = 0; i < inFormula.length; i++) {
-			formula[i] = new int[inFormula[i].length];
-			for (int j = 0; j < inFormula[i].length; j++)
-				formula[i][j] = inFormula[i][j];
-		}
+	private int numberOfVariables() {
+		return sodokuBoard.getBoardSize() * sodokuBoard.getBoardSize() * sodokuBoard.getBoardSize();
 	}
 
-	public void read(String cnf) throws FileNotFoundException {
+	private int numberOfClauses() {
+		return sodokuBoard.getBoardSize() * sodokuBoard.getBoardSize() * sodokuBoard.getBoardSize()
+				* sodokuBoard.getNumberOfCells();
+	}
 
-		inFile = new FormulaReaderCalebPrivitera();
-		inFile.read(cnf);
+	private void printFirstLine() {
+		writer.println("p cnf " + numberOfVariables() + " " + numberOfClauses());
+	}
 
-		clauses = inFile.getNumClauses();
-		variables = inFile.getNumVariables();
-		inFormula = inFile.getFormula();
-		deepCopyInFormula(); // initialize unsatisfied formula
+	private void createOutput(String outFile) throws Exception {
+		cnfOut = new File(outFile + ".cnf");
 
-		tValue = new int[variables];
-		for (int i = 0; i < clauses; i++) {
-			sublist.add(i);
+		try {
+			writer = new PrintWriter(cnfOut);
+		} catch (Exception e) {
+			throw e;
+		
 		}
-		sublist.add(FALSE); // initially, all clauses are unsatisfied
 	}
 
 }
-
