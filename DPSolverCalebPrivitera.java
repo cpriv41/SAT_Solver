@@ -1,5 +1,5 @@
 package a1;
-
+ 
 import java.io.*;
 
 public class DPSolverCalebPrivitera {
