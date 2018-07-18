@@ -31,7 +31,7 @@ Initial Formula:
 Initial Assignment of truth values:  X1:  0	X2: 0		X3: 0		X4: 0      
                    (0 means unassigned. 1 means assigned true. -1 means assigned false)
 
-
+ 
 Step1:	set X1: 1
 Assignment:  X1:  1	X2: 0	X3: 0	X4: 0
 Formula:
